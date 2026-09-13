@@ -1,4 +1,5 @@
 from email_validator import validate_email, EmailNotValidError, EmailSyntaxError, EmailUndeliverableError
+from email_package.error_codes import ErrorCodes as Ec
 
 def validate_email_address(email_address: str) -> tuple[int, str]:
     """
@@ -9,8 +10,8 @@ def validate_email_address(email_address: str) -> tuple[int, str]:
     Will validate the email address.
 
     error return:
-    0 if success
-    -1 if error
+    Ec.SUCCESS if success
+    Ec.BAD_EMAIL_ADDRESS
 
     error string:
     Will describe the error such as missing @, invalid domain.
@@ -23,18 +24,18 @@ def validate_email_address(email_address: str) -> tuple[int, str]:
         # Always use the normalized version returned by the library
         normalized_email = email_info.normalized
         #print(f"Success! Normalized email: {normalized_email}"                               )
-        return 0, normalized_email
+        return Ec.SUCCESS, normalized_email
 
     except EmailSyntaxError as e:
         # Raised if the structure is wrong (e.g., missing '@', spaces, invalid characters)
-        return -1, f"Syntax Error: {email_address} {e}"
+        return Ec.BAD_EMAIL_ADDRESS, f"Syntax Error: {email_address} {e}"
 
     except EmailUndeliverableError as e:
         # Raised if the domain doesn't exist or has no MX records
-        return -1, f"Deliverability Error: {email_address} {e}"
+        return Ec.BAD_EMAIL_ADDRESS, f"Deliverability Error: {email_address} {e}"
 
     except EmailNotValidError as e:
         # Catch-all for any other validation errors provided by the library
-        return -1, f"Validation Error: {email_address} {e}"
+        return Ec.BAD_EMAIL_ADDRESS, f"Validation Error: {email_address} {e}"
 
 
