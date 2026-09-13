@@ -2,7 +2,7 @@ from email_package.validate import validate_email_address
 from email_package.my_email import MyEmail
 from dotenv import load_dotenv
 import os
-from email_package.error_codes import ErrorCodes as Ec
+from email_package.error_codes import ErrorCode as Ec
 
 def main():
 
@@ -14,14 +14,20 @@ def main():
     port = int(os.environ["SMTP_PORT"])
     sender_email = os.environ["EMAIL_FROM"]
 
-    email = MyEmail(password,username,smtp_server,port,sender_email)
-    distro = {"To": ["rlynch3456@yahoo.com"], "Bcc": ["rich.lynch3456@comcast.net"]}
-    error = email.create_message("greetings", "rlynch3456@yahoo.com", distro, "<H1>foobar!</H1>")
-    if error != Ec.SUCCESS:
-        print(error.name)
-    else:
-        ret, ret_string = email.send_message()
-        print(f'Return Code: {ret}  {ret_string}')
+    distros = [
+        {"To": ["rlynch3456@yahoo.com"], "Bcc": ["rich.lynch3456@comcast.net"], "Cc": ["rlynch3456@yahoo.com"]},
+        {"Cc": ["rlynch3456@yahoo.com"]},
+        {"To": ["rlynch3456@yahoo.coXXX"], "Cc": ["foo@rjlsoftwareus.com"]}
+    ]
+
+    email = MyEmail(username, password, sender_email, smtp_server,port)
+    for distro in distros:
+        ret = email.create_message("greetings", "rlynch3456@yahoo.com", distro, "<H1>foobar!</H1>")
+        if ret != Ec.SUCCESS:
+            print(f'Return Code: {ret}')
+        else:
+            ret, ret_string = email.send_message()
+            print(f'Return Code: {ret}  {ret_string}')
 
     # Test cases
     print(validate_email_address(""))   # Valid

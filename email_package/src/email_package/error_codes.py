@@ -1,6 +1,9 @@
 from enum import Enum, unique
+
+__all__ = ["ErrorCode"]
+
 @unique
-class ErrorCodes(Enum):
+class ErrorCode(Enum):
     SUCCESS = 0
     MISSING_TO_RECIPIENT = 1
     MISSING_FROM_RECIPIENT = 2
@@ -8,3 +11,6 @@ class ErrorCodes(Enum):
     MISSING_FROM_EMAIL_ADDRESS = 4
     BAD_EMAIL_ADDRESS = 5
     NO_MESSAGE_FOUND = 6
+    MESSAGE_SEND_ERROR = 7
+
+

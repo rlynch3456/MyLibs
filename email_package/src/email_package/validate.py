@@ -1,7 +1,9 @@
 from email_validator import validate_email, EmailNotValidError, EmailSyntaxError, EmailUndeliverableError
-from email_package.error_codes import ErrorCodes as Ec
+from email_package.error_codes import ErrorCode as Ec, ErrorCode
 
-def validate_email_address(email_address: str) -> tuple[int, str]:
+__all__ = ["validate_email_address"]
+
+def validate_email_address(email_address: str) -> tuple[ErrorCode, str]:
     """
     validate_email_address
     :param email_address:

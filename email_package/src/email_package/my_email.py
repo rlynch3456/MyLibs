@@ -2,10 +2,23 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
 from email_package.validate import validate_email_address
-from email_package.error_codes import ErrorCodes as Ec
+from email_package.error_codes import ErrorCode as Ec, ErrorCode
+
+__all__ = ["MyEmail"]
 
 class MyEmail:
-    def __init__(self, password, username, server, port, sender_email):
+    """
+    MyEmail class
+
+    Initialize the email system with username and password, etc
+
+    :param username: email username
+    :param password: email password
+    :param sender_email: sender email address
+    :param server: smtp server
+    :param port: smtp port
+    """
+    def __init__(self, username, password, sender_email, server, port, ):
         self.distro = {}
         self.msg = None
 
@@ -15,14 +28,22 @@ class MyEmail:
         self._port = port
         self._sender_email = sender_email
 
-    def create_message(self, subject, sender, distro, content):
-
+    def create_message(self, subject: str, sender: str, distro:dict[str, list[str]], content: str) -> ErrorCode:
+        """
+        create_message
+        :param subject: subject line as a string
+        :param sender:  sender email address
+        :param distro:  recipients as a dictionary with "To", "Cc" and "Bcc" keys
+        :param content: email content as a string, typically in HTML format
+        :return: ErrorCode: SUCCESS or MISSING_TO_RECIPIENT
+            (if disto does not at least contain "To").
+        """
         self.distro = distro
         self.msg = MIMEMultipart("alternative")
         self.msg["Subject"] = subject
         self.msg["From"] = sender
         if "To" in distro:
-            self.msg["To"] = ", ".join(distro.get("To"))
+            self.msg["To"] = ", ".join(distro["To"])
         else:
             return Ec.MISSING_TO_RECIPIENT
 
@@ -34,12 +55,19 @@ class MyEmail:
         self.msg.attach(html_part)
         return Ec.SUCCESS
 
-    def send_message(self):
-
+    def send_message(self) -> tuple[ErrorCode, list]:
+        """
+        send_message
+        :return: Ec.SUCCESS, Ec.BAD_EMAIL_ADDRESS, or Ec.SEND_ERROR
+        and list of either errors or recipient list if successful
+        """
         debuglevel = True
-        recipients = []
+        #recipients = []
         if self.msg is None:
-            return Ec.NO_MESSAGE_FOUND, "create_message method needs to be called first"
+            # Yes, it is odd that the string will be in a list, but the function return type is a
+            # tuple [ErrorCode, list] where the list is typically a list of
+            # recipients or errors.  This is just to keep the typedef happy.
+            return Ec.NO_MESSAGE_FOUND, ["create_message method needs to be called first"]
 
         to = self.distro.get("To", [])
         cc = self.distro.get("Cc", [])
@@ -55,7 +83,7 @@ class MyEmail:
             error_list = []
             for address in recipients:
                 error, string = validate_email_address(address)
-                if error != 0:
+                if error != Ec.SUCCESS:
                     error_list.append(string)
 
             if len(error_list) > 0:
@@ -74,9 +102,7 @@ class MyEmail:
                     self.msg.as_string()
                 )
 
-
-
         except smtplib.SMTPException as e:
-            print(f"SMTP error occurred: {e}")
+            return Ec.MESSAGE_SEND_ERROR, [f"SMTP error occurred: {e}"]
 
         return Ec.SUCCESS, recipients
